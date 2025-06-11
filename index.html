@@ -975,8 +975,7 @@
         if (PUMP_FUN_TOKEN_MINT === 'YOUR_PUMP_FUN_TOKEN_MINT_ADDRESS_HERE') {
             showError("Project owner has not configured the token mint address yet.");
             console.error("Please replace 'YOUR_PUMP_FUN_TOKEN_MINT_ADDRESS_HERE' in the script.");
-            showNotification('DEV MODE: Token check bypassed. Please set a mint address.');
-            return true;
+            return false;
         }
         
         try {
