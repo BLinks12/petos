@@ -1036,7 +1036,7 @@
             { name: 'Mythic', chance: 0.005, color: 'rainbow' }
         ],
         bodyShapes: ["Blob", "Critter", "Wyrm", "Golem", "Floater"],
-        accessories: ["None", "Top Hat", "Wizard Hat", "Crown", "Headphones", "Sunglasses", "Bowtie", "Monocle", "Halo", "Devil Horns", "Jetpack", "Laser Eyes", "Moon Helmet", "WAGMI Nameplate", "Diamond Hands"],
+        accessories: ["None", "Top Hat", "Wizard Hat", "Crown", "Headphones", "Sunglasses", "Bowtie", "Monocle", "Halo", "Devil Horns", "Jetpack"],
         personalities: ["Debugger", "Helper", "Listener", "Advisor", "Companion", "Guardian", "Scholar", "Sage", "Oracle", "Mentor"],
         specialTraits: ["None", "Glowing Eyes", "Sparkles", "Floating", "Code Aura", "Glitching", "Stealth"]
     };
@@ -1477,70 +1477,6 @@
                  accessoryMesh.rotation.x = Math.PI / 16;
                  if(bodyShape === 'Wyrm') accessoryMesh.position.set(0, 0, -0.8);
                  break;
-            case "Moon Helmet":
-                const helmetMat = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
-                    metalness: 0.1,
-                    roughness: 0.2,
-                    transparent: true,
-                    opacity: 0.4
-                });
-                accessoryMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), helmetMat);
-                accessoryMesh.position.y = headYOffset - 0.9;
-                if (bodyShape === 'Critter') accessoryMesh.position.y = 1.6;
-                else if (bodyShape === 'Blob') accessoryMesh.position.y = 0.6;
-                else if (bodyShape === 'Wyrm') accessoryMesh.position.set(2.0, 0.2, 0);
-                else if (bodyShape === 'Golem') accessoryMesh.position.y = 0.5;
-                else if (bodyShape === 'Floater') accessoryMesh.position.y = 1.0;
-                break;
-            case "Laser Eyes":
-                 const laserGroup = new THREE.Group();
-                 const laserMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.7 });
-                 const laserCone = new THREE.CylinderGeometry(0.1, 0.01, 4, 16);
-                 
-                 const leftLaser = new THREE.Mesh(laserCone, laserMat);
-                 const rightLaser = new THREE.Mesh(laserCone, laserMat);
-                 laserGroup.add(leftLaser, rightLaser);
-                 
-                 leftLaser.rotation.x = Math.PI / 2;
-                 rightLaser.rotation.x = Math.PI / 2;
-                 
-                 accessoryMesh = laserGroup;
-
-                // Position based on body shape's known eye location
-                if (bodyShape === 'Critter') {
-                    leftLaser.position.set(-0.35, 1.8, 2.7);
-                    rightLaser.position.set(0.35, 1.8, 2.7);
-                } else if (bodyShape === 'Blob') {
-                    leftLaser.position.set(-0.4, 0.8, 3.2);
-                    rightLaser.position.set(0.4, 0.8, 3.2);
-                } else if (bodyShape === 'Wyrm') {
-                    leftLaser.position.set(-1.6, 0.2, 2.6);
-                    rightLaser.position.set(-1.6, 0.2, -2.6);
-                    laserGroup.rotation.y = Math.PI / 2;
-                } else if (bodyShape === 'Golem') {
-                    leftLaser.position.set(-0.5, 0.8, 2.8);
-                    rightLaser.position.set(0.5, 0.8, 2.8);
-                } else if (bodyShape === 'Floater') {
-                    leftLaser.position.set(-0.4, 1.2, 3.1);
-                    rightLaser.position.set(0.4, 1.2, 3.1);
-                }
-                break;
-            case "Sunglasses":
-                const glassesGroup = new THREE.Group();
-                const lensMat = new THREE.MeshBasicMaterial({color: 0x111111});
-                const lenseL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.1), lensMat);
-                lenseL.position.x = -0.4;
-                const lenseR = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.1), lensMat);
-                lenseR.position.x = 0.4;
-                glassesGroup.add(lenseL, lenseR);
-                accessoryMesh = glassesGroup;
-                if (bodyShape === 'Critter') accessoryMesh.position.set(0, 1.8, 0.8);
-                else if (bodyShape === 'Blob') accessoryMesh.position.set(0, 0.8, 1.3);
-                else if (bodyShape === 'Wyrm') accessoryMesh.position.set(2.0, 0.3, 0);
-                else if (bodyShape === 'Golem') accessoryMesh.position.set(0, 0.8, 0.85);
-                else if (bodyShape === 'Floater') accessoryMesh.position.set(0, 1.2, 1.15);
-                break;
         }
 
         if (accessoryMesh) {
