@@ -638,7 +638,7 @@
       <div class="icon-label">About</div>
     </div>
     
-    <div class="desktop-icon" style="top: 290px; left: 20px;" ondblclick="window.open('https://x.com/Ducklabsxyz', '_blank')">
+    <div class="desktop-icon" style="top: 290px; left: 20px;" ondblclick="window.open('https://x.com/PetOSLabs', '_blank')">
       <div class="icon-image">
         <svg width="48" height="48" viewBox="0 0 48 48">
           <rect x="8" y="8" width="32" height="32" rx="4" fill="#000" stroke="#fff" stroke-width="2"/>
@@ -1860,7 +1860,7 @@
     
     function sharePet() {
         if (!currentPetData) return;
-        const text = `I got a ${currentPetData.rarity.name} ${currentPetData.bodyShape} pet with a ${currentPetData.accessory} and the ${currentPetData.personality} personality. Generate your own Pet on PetOS!`;
+        const text = `I got a ${currentPetData.rarity.name} ${currentPetData.bodyShape} pet with a ${currentPetData.accessory} and the ${currentPetData.personality} personality. Generate your own Pet on PetOS! @PetOSLabs`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     }
