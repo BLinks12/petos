@@ -739,11 +739,11 @@
         <p><strong>How to Use:</strong><br>
         1. Open PetOS.SYS from the desktop.<br>
         2. Connect your Solana wallet.<br>
-        3. Click "Initialize PetOS"<br>
+        3. Click "Initialize PetOS".<br>
         4. Your unique pet will be generated based on your wallet address.<br>
         5. <span style="color: red;">WARNING: One pet per wallet FOREVER!</span></p>
         
-        <p><strong>New Features!</strong><br>
+         <p><strong>New Features!</strong><br>
         • New Body Shapes: Critter, Blob, Wyrm, Golem, Floater!<br>
         • Discover accessories and special traits!</p>
 
@@ -794,7 +794,7 @@
         </div>
       </div>
       <div class="window-content" style="text-align: center; padding: 16px;">
-        <p style="font-size: 11px; margin-bottom: 16px;">To generate a Pet, you need to connect your Solana wallet and hold the $PET token.</p>
+        <p style="font-size: 11px; margin-bottom: 16px;">To generate a Pet, you need to connect your Solana wallet.</p>
         <button class="button" onclick="connectWallet()">Connect Wallet</button>
       </div>
     </div>
@@ -870,10 +870,6 @@
     const petRegistry = JSON.parse(localStorage.getItem('petRegistry') || '{}'); // Store generated pets by wallet
     let solanaConnection = null;
     let connectedWallet = null;
-
-    // The mint address of the Pump.fun token.
-    // IMPORTANT: REPLACE THIS WITH YOUR ACTUAL TOKEN MINT ADDRESS AFTER LAUNCH.
-    const PUMP_FUN_TOKEN_MINT = 'YOUR_PUMP_FUN_TOKEN_MINT_ADDRESS_HERE';
 
     // Three.js variables
     let scene, camera, renderer, petGroup;
@@ -1019,41 +1015,6 @@
         }
     }
 
-    async function checkTokenOwnership(walletAddress) {
-        ui.statusText.textContent = 'Verifying token ownership...';
-        ui.progressBar.style.width = `5%`;
-
-        if (PUMP_FUN_TOKEN_MINT === 'YOUR_PUMP_FUN_TOKEN_MINT_ADDRESS_HERE') {
-            showError("Project owner has not configured the token mint address yet.");
-            console.error("Please replace 'YOUR_PUMP_FUN_TOKEN_MINT_ADDRESS_HERE' in the script.");
-            return false;
-        }
-        
-        try {
-            const publicKey = new solanaWeb3.PublicKey(walletAddress);
-            const tokenAccounts = await solanaConnection.getParsedTokenAccountsByOwner(
-                publicKey, 
-                { mint: new solanaWeb3.PublicKey(PUMP_FUN_TOKEN_MINT) }
-            );
-
-            if (tokenAccounts.value.length > 0) {
-                for (const account of tokenAccounts.value) {
-                    const amount = account.account.data.parsed.info.tokenAmount.uiAmount;
-                    if (amount > 0) {
-                        ui.statusText.textContent = 'Token ownership verified!';
-                        return true;
-                    }
-                }
-            }
-            
-            return false;
-        } catch (error) {
-            console.error("Error checking token ownership:", error);
-            showError("Could not verify token ownership.");
-            return false;
-        }
-    }
-
 
     // --- CORE LOGIC ---
 
@@ -1073,12 +1034,6 @@
             showError(`Pet for this wallet already exists.`);
             displayPet(petRegistry[walletAddress]);
             ui.generateBtn.disabled = true; // Disable after generating
-            return;
-        }
-
-        const hasToken = await checkTokenOwnership(walletAddress);
-        if (!hasToken) {
-            showError("You must hold the $PET token to generate a pet.");
             return;
         }
 
