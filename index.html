@@ -729,7 +729,7 @@
         <p><strong>How to Use:</strong><br>
         1. Open PetOS.SYS from the desktop.<br>
         2. Connect your Solana wallet.<br>
-        3. You must be holding our token to generate a pet.<br>
+        3. You must be holding the $PET token to generate a pet.<br>
         4. Click "Initialize PetOS"<br>
         5. Your unique pet will be generated based on your wallet address.<br>
         6. <span style="color: red;">WARNING: One pet per wallet FOREVER!</span></p>
@@ -781,7 +781,7 @@
         </div>
       </div>
       <div class="window-content" style="text-align: center; padding: 16px;">
-        <p style="font-size: 11px; margin-bottom: 16px;">To generate a Pet, you need to connect your Solana wallet and hold the required token.</p>
+        <p style="font-size: 11px; margin-bottom: 16px;">To generate a Pet, you need to connect your Solana wallet and hold the $PET token.</p>
         <button class="button" onclick="connectWallet()">Connect Wallet</button>
       </div>
     </div>
@@ -1028,7 +1028,7 @@
 
         const hasToken = await checkTokenOwnership(walletAddress);
         if (!hasToken) {
-            showError("You must hold the required token to generate a pet.");
+            showError("You must hold the $PET token to generate a pet.");
             return;
         }
 
