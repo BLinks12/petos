@@ -1051,7 +1051,7 @@
             { name: 'Legendary', chance: 0.045, color: 0xFF9800 },
             { name: 'Mythic', chance: 0.005, color: 'rainbow' }
         ],
-        bodyShapes: ["Blob", "Critter", "Wyrm", "Golem", "Floater"],
+        bodyShapes: ["Blob", "Critter", "Wyrm", "Golem", "Floater", "Mech", "Crystalline"],
         accessories: ["None", "Top Hat", "Wizard Hat", "Crown", "Headphones", "Sunglasses", "Bowtie", "Monocle", "Halo", "Devil Horns", "Jetpack"],
         personalities: ["Debugger", "Helper", "Listener", "Advisor", "Companion", "Guardian", "Scholar", "Sage", "Oracle", "Mentor"],
         specialTraits: ["None", "Glowing Eyes", "Sparkles", "Floating", "Code Aura", "Glitching", "Stealth"]
@@ -1341,6 +1341,36 @@
                 if (data.specialTrait === 'None') data.specialTrait = 'Floating'; 
                 break;
 
+            case "Mech":
+                const mech_body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), petMaterial);
+                mech_body.position.y = -0.5;
+                const mech_head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), petMaterial);
+                mech_head.position.y = 0.8;
+                const mech_antenna_base = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.4, 8), petMaterial);
+                mech_antenna_base.position.set(0, 1.5, 0);
+                const mech_antenna_tip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshBasicMaterial({color: 0xff0000}));
+                mech_antenna_tip.name = "antenna_tip";
+                mech_antenna_tip.position.set(0, 1.7, 0);
+                petGroup.add(mech_body, mech_head, mech_antenna_base, mech_antenna_tip);
+                petGroup.position.y = 0.5;
+                break;
+
+            case "Crystalline":
+                const main_crystal = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 0), petMaterial);
+                main_crystal.position.y = 1;
+                petGroup.add(main_crystal);
+
+                for(let i=0; i<3; i++) {
+                    const shard_geo = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), petMaterial);
+                    shard_geo.name = `shard_${i}`;
+                    const angle = (i / 3) * Math.PI * 2;
+                    shard_geo.position.set(Math.cos(angle) * 1.8, 1, Math.sin(angle) * 1.8);
+                    petGroup.add(shard_geo);
+                }
+                // This shape should always float
+                if (data.specialTrait === 'None') data.specialTrait = 'Floating';
+                break;
+
             case "Blob":
             default:
                 const blob_b = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 24), petMaterial);
@@ -1383,6 +1413,15 @@
             case "Floater":
                 leftEye.position.set(-0.4, 1.2, 1.1);
                 rightEye.position.set(0.4, 1.2, 1.1);
+                break;
+            case "Mech":
+                leftEye.position.set(-0.3, 1, 0.5);
+                rightEye.position.set(0.3, 1, 0.5);
+                break;
+            case "Crystalline":
+                // Eyes appear on the main crystal
+                leftEye.position.set(-0.3, 1.2, 0.9);
+                rightEye.position.set(0.3, 1.2, 0.9);
                 break;
             case "Blob":
             default:
@@ -1438,6 +1477,8 @@
             case "Wyrm": headYOffset = 0.5; break; // Relative to front segment
             case "Golem": headYOffset = 1.2; break;
             case "Floater": headYOffset = 2.3; break;
+            case "Mech": headYOffset = 1.4; break;
+            case "Crystalline": headYOffset = 2.3; break;
         }
 
         switch(accessory) {
@@ -1450,8 +1491,6 @@
                 accessoryMesh = hatGroup;
                 accessoryMesh.position.y = headYOffset;
                 if(bodyShape === 'Wyrm') accessoryMesh.position.x = 2.0;
-                else if (bodyShape === 'Golem') accessoryMesh.position.x = 0.85;
-                else if (bodyShape === 'Floater') accessoryMesh.position.x = 1.15;
                 break;
             case "Crown":
                 accessoryMesh = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.1, 8, 20), new THREE.MeshStandardMaterial({color: 0xFFD700, metalness: 0.8, roughness: 0.3}));
@@ -1479,6 +1518,8 @@
                 else if (bodyShape === 'Wyrm') accessoryMesh.position.set(2.0, 0.3, 0);
                 else if (bodyShape === 'Golem') accessoryMesh.position.set(0, 0.8, 0.85);
                 else if (bodyShape === 'Floater') accessoryMesh.position.set(0, 1.2, 1.15);
+                else if (bodyShape === 'Mech') accessoryMesh.position.set(0, 1, 0.55);
+                else if (bodyShape === 'Crystalline') accessoryMesh.position.set(0, 1.2, 1);
                 break;
             case "Jetpack":
                  const packGroup = new THREE.Group();
@@ -1546,6 +1587,24 @@
                 if (child.name.includes('tentacle')) {
                     child.rotation.x = Math.sin(Date.now() * 0.001 + index) * 0.2;
                     child.rotation.z = Math.cos(Date.now() * 0.001 + index) * 0.2;
+                }
+            });
+        } else if (currentPetData && currentPetData.bodyShape === 'Mech') {
+            const antennaTip = petGroup.getObjectByName('antenna_tip');
+            if (antennaTip) {
+                const mat = antennaTip.material;
+                mat.emissive.set(0xff0000);
+                mat.emissiveIntensity = Math.sin(Date.now() * 0.01) > 0.9 ? 5 : 0;
+            }
+        } else if (currentPetData && currentPetData.bodyShape === 'Crystalline') {
+             petGroup.children.forEach((child) => {
+                if (child.name.startsWith('shard_')) {
+                    child.rotation.x += 0.01;
+                    child.rotation.y += 0.01;
+                    const i = parseInt(child.name.split('_')[1]);
+                    const angle = Date.now() * 0.0005 + i * (Math.PI*2/3);
+                    child.position.x = Math.cos(angle) * 1.8;
+                    child.position.z = Math.sin(angle) * 1.8;
                 }
             });
         } else {
