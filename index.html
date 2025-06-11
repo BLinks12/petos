@@ -656,12 +656,12 @@
         </div>
         
         <div class="input-group">
-          <label for="walletAddressInput">Initialize Pet for Wallet:</label>
-          <input type="text" id="walletAddressInput" class="text-input" placeholder="Enter your wallet address" maxlength="42">
+          <label>Wallet Status:</label>
+          <div id="walletAddressDisplay" class="status-text" style="font-style: normal; padding: 6px; text-align: center;">Not Connected</div>
         </div>
         
         <div style="text-align: center; margin: 12px 0;">
-          <button class="button" id="generateBtn" onclick="generatePet()">
+          <button class="button" id="generateBtn" onclick="generatePet()" disabled>
             Initialize PetOS
           </button>
         </div>
@@ -768,6 +768,23 @@
         </div>
       </div>
     </div>
+
+    <!-- Connect Wallet Window -->
+    <div class="window" id="connectWalletWindow" style="width: 320px; top: 150px; left: 150px;">
+      <div class="window-header" onmousedown="startDrag(event, 'connectWalletWindow')">
+        <div class="window-title">
+          <img src="data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='12' height='9' rx='1' fill='%23666'/%3E%3Crect x='3' y='5' width='10' height='7' fill='%23fff'/%3E%3Ccircle cx='11' cy='8' r='1' fill='%23666'/%3E%3C/svg%3E" class="title-icon">
+          Wallet Required
+        </div>
+        <div class="window-controls">
+          <button class="window-button" onclick="closeWindow('connectWalletWindow')">✕</button>
+        </div>
+      </div>
+      <div class="window-content" style="text-align: center; padding: 16px;">
+        <p style="font-size: 11px; margin-bottom: 16px;">To generate a Pet, you need to connect your Solana wallet and hold the required token.</p>
+        <button class="button" onclick="connectWallet()">Connect Wallet</button>
+      </div>
+    </div>
   </div>
 
   <!-- Taskbar -->
@@ -825,7 +842,7 @@
         mainWindow: document.getElementById('mainWindow'),
         helpWindow: document.getElementById('helpWindow'),
         aboutWindow: document.getElementById('aboutWindow'),
-        connectWalletBtn: document.getElementById('connectWalletBtn'),
+        connectWalletWindow: document.getElementById('connectWalletWindow'),
         walletAddressDisplay: document.getElementById('walletAddressDisplay'),
         generateBtn: document.getElementById('generateBtn'),
         progressBar: document.getElementById('progressBar'),
@@ -917,6 +934,14 @@
 
     // --- SOLANA & WALLET LOGIC ---
 
+    function openConnectWalletWindow() {
+        const win = ui.connectWalletWindow;
+        win.classList.add('active');
+        win.classList.remove('minimized');
+        bringToFront(win);
+        sounds.play('click');
+    }
+
     async function connectWallet() {
         if ('solana' in window) {
             const provider = window.solana;
@@ -924,10 +949,10 @@
                 try {
                     const resp = await provider.connect();
                     connectedWallet = resp.publicKey;
-                    ui.connectWalletBtn.style.display = 'none';
-                    ui.walletAddressDisplay.textContent = `Connected: ${connectedWallet.toString()}`;
+                    ui.walletAddressDisplay.textContent = `Connected: ${connectedWallet.toString().substring(0, 4)}...${connectedWallet.toString().substring(connectedWallet.toString().length - 4)}`;
                     ui.generateBtn.disabled = false;
                     showNotification('Wallet connected successfully!');
+                    closeWindow('connectWalletWindow');
 
                     // Initialize Solana connection
                     solanaConnection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
@@ -988,6 +1013,7 @@
     async function generatePet() {
         if (!connectedWallet || !solanaConnection) {
             showError("Please connect your wallet first.");
+            openConnectWalletWindow();
             return;
         }
 
@@ -1456,6 +1482,10 @@
         bringToFront(win);
         restoreWindow(win.id);
         sounds.play('click'); 
+
+        if (!connectedWallet) {
+            openConnectWalletWindow();
+        }
     }
     function openHelpWindow() { 
         const win = ui.helpWindow;
