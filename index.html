@@ -594,6 +594,19 @@
       <div class="icon-label">PetOS.SYS</div>
     </div>
     
+    <div class="desktop-icon" style="top: 20px; left: 110px;" ondblclick="openNotepadWindow()">
+      <div class="icon-image">
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <path d="M10 6C8.89 6 8 6.89 8 8L8 40C8 41.11 8.89 42 10 42L38 42C39.11 42 40 41.11 40 40L40 16L28 6L10 6Z" fill="#fff"></path>
+          <path d="M28 6L28 16L40 16L28 6Z" fill="#ccc"></path>
+          <rect x="12" y="20" width="24" height="2" fill="#245ddb"></rect>
+          <rect x="12" y="26" width="24" height="2" fill="#245ddb"></rect>
+          <rect x="12" y="32" width="18" height="2" fill="#245ddb"></rect>
+        </svg>
+      </div>
+      <div class="icon-label">Notepad</div>
+    </div>
+    
     <div class="desktop-icon" style="top: 110px; left: 20px;" ondblclick="openHelpWindow()">
       <div class="icon-image">
         <svg width="48" height="48" viewBox="0 0 48 48">
@@ -836,6 +849,40 @@
         </div>
     </div>
 
+  <!-- Rename Pet Window -->
+  <div class="window" id="renameWindow" style="width: 300px; top: 40%; left: 50%; transform: translateX(-50%);">
+      <div class="window-header" onmousedown="startDrag(event, 'renameWindow')">
+          <div class="window-title">Rename Pet</div>
+          <div class="window-controls">
+               <button class="window-button" onclick="closeWindow('renameWindow')">✕</button>
+          </div>
+      </div>
+      <div class="window-content" style="text-align: center;">
+          <p style="font-size: 11px; margin-bottom: 8px;">Enter a new name for your pet:</p>
+          <input type="text" id="renameInput" class="text-input" maxlength="24">
+          <div style="margin-top: 12px;">
+              <button class="button" onclick="savePetName()">Save Name</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Notepad Window -->
+  <div class="window" id="notepadWindow" style="width: 400px; height: 300px; top: 150px; left: 220px;">
+    <div class="window-header" onmousedown="startDrag(event, 'notepadWindow')">
+      <div class="window-title">
+         <img src="data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 6C8.89 6 8 6.89 8 8L8 40C8 41.11 8.89 42 10 42L38 42C39.11 42 40 41.11 40 40L40 16L28 6L10 6Z' fill='%23fff'/%3E%3Cpath d='M28 6L28 16L40 16L28 6Z' fill='%23ccc'/%3E%3C/svg%3E" class="title-icon">
+        Notepad
+      </div>
+      <div class="window-controls">
+        <button class="window-button" onclick="minimizeWindow('notepadWindow')">_</button>
+        <button class="window-button" onclick="closeWindow('notepadWindow')">✕</button>
+      </div>
+    </div>
+    <div class="window-content" style="padding: 0; display: flex;">
+      <textarea id="notepadTextarea" style="width: 100%; height: 100%; border: none; resize: none; font-family: 'Lucida Console', Monaco, monospace; font-size: 12px; padding: 4px; background: #fff; color: #000; outline: none;"></textarea>
+    </div>
+  </div>
+
   <!-- Taskbar -->
   <div class="taskbar">
     <button class="start-button" id="startButton">
@@ -849,6 +896,7 @@
   <!-- Start Menu -->
   <div class="start-menu" id="startMenu" style="display:none; position:fixed; left:2px; bottom:32px; min-width:160px; background:#ece9d8; border:2px solid #fff; box-shadow:2px 2px 8px rgba(0,0,0,0.2); z-index:10001;">
     <div class="start-menu-item" onclick="openMainWindow(); hideStartMenu();">🐾 PetOS.SYS</div>
+    <div class="start-menu-item" onclick="openNotepadWindow(); hideStartMenu();">📝 Notepad</div>
     <div class="start-menu-item" onclick="openGalleryWindow(); hideStartMenu();">🖼️ My Pets</div>
     <div class="start-menu-item" onclick="openRoadmapWindow(); hideStartMenu();">🗺️ $PET Roadmap</div>
     <div class="start-menu-item" onclick="openHelpWindow(); hideStartMenu();">❓ Help</div>
@@ -890,6 +938,10 @@
         aboutWindow: document.getElementById('aboutWindow'),
         roadmapWindow: document.getElementById('roadmapWindow'),
         connectWalletWindow: document.getElementById('connectWalletWindow'),
+        renameWindow: document.getElementById('renameWindow'),
+        renameInput: document.getElementById('renameInput'),
+        notepadWindow: document.getElementById('notepadWindow'),
+        notepadTextarea: document.getElementById('notepadTextarea'),
         walletAddressDisplay: document.getElementById('walletAddressDisplay'),
         generateBtn: document.getElementById('generateBtn'),
         progressBar: document.getElementById('progressBar'),
@@ -1062,6 +1114,7 @@
         currentPetData = petData;
 
         displayPet(petData);
+        openRenameWindow(); // Prompt for name on first generation
         
         showNotification(`Your PetOS pet for ${walletAddress.substring(0,10)}... is ready!`);
         sounds.play('success');
@@ -1110,11 +1163,15 @@
      * Displays the generated pet's info and 3D model.
      */
     function displayPet(petData) {
+        currentPetData = petData;
         ui.petContainer.style.display = 'block';
 
         const rarityClass = `rarity-${petData.rarity.name.toLowerCase()}`;
         ui.petInfo.innerHTML = `
-            <div class="pet-name">${petData.name}</div>
+            <div class="pet-name">
+              <span>${petData.name}</span>
+              <button onclick="openRenameWindow()" style="all: unset; cursor: pointer; margin-left: 8px; font-size: 12px;" title="Rename Pet">✏️</button>
+            </div>
             <div class="pet-stats">
                 <div class="stat-row">
                     <span class="stat-label">Rarity:</span>
@@ -1512,6 +1569,12 @@
         openMainWindow();
         setupDragRotation();
 
+        // Notepad auto-save logic
+        ui.notepadTextarea.value = localStorage.getItem('petosNotepadContent') || 'Welcome to your notepad!';
+        ui.notepadTextarea.addEventListener('input', () => {
+            localStorage.setItem('petosNotepadContent', ui.notepadTextarea.value);
+        });
+
         // Add sound listeners
         document.querySelectorAll('.button, .window-button, .desktop-icon, .start-button').forEach(el => {
             el.addEventListener('mousedown', () => sounds.play('click'));
@@ -1871,6 +1934,52 @@
             hash |= 0; // Convert to 32bit integer
         }
         return hash;
+    }
+
+    function openNotepadWindow() {
+        const win = ui.notepadWindow;
+        win.classList.add('active');
+        win.classList.remove('minimized');
+        bringToFront(win);
+        restoreWindow(win.id);
+        sounds.play('click');
+    }
+
+    function openRenameWindow() {
+        if (!currentPetData) return;
+        const win = ui.renameWindow;
+        ui.renameInput.value = currentPetData.name;
+        win.classList.add('active');
+        bringToFront(win);
+        sounds.play('click');
+        ui.renameInput.focus();
+        ui.renameInput.select();
+    }
+
+    function savePetName() {
+        if (!currentPetData) return;
+        const newName = ui.renameInput.value.trim();
+        if (newName && newName.length > 0) {
+            currentPetData.name = newName;
+            
+            // Update registry and save to localStorage
+            const walletAddress = currentPetData.walletAddress;
+            if (petRegistry[walletAddress]) {
+                petRegistry[walletAddress].name = newName;
+                localStorage.setItem('petRegistry', JSON.stringify(petRegistry));
+            }
+            
+            // Update the displayed name in the main window
+            const petNameSpan = ui.petInfo.querySelector('.pet-name span');
+            if (petNameSpan) {
+                petNameSpan.textContent = newName;
+            }
+            
+            showNotification('Pet name updated!');
+            closeWindow('renameWindow');
+        } else {
+            showError("Pet name cannot be empty.");
+        }
     }
 
   </script>
