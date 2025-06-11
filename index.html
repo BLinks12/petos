@@ -1348,7 +1348,7 @@
                 mech_head.position.y = 0.8;
                 const mech_antenna_base = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.4, 8), petMaterial);
                 mech_antenna_base.position.set(0, 1.5, 0);
-                const mech_antenna_tip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshBasicMaterial({color: 0xff0000}));
+                const mech_antenna_tip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({color: 0xff0000}));
                 mech_antenna_tip.name = "antenna_tip";
                 mech_antenna_tip.position.set(0, 1.7, 0);
                 petGroup.add(mech_body, mech_head, mech_antenna_base, mech_antenna_tip);
