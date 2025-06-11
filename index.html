@@ -1675,10 +1675,12 @@
     }
     function closeWindow(id) { 
         const windowEl = document.getElementById(id);
-        windowEl.classList.remove('active'); 
-        if (!windowEl.classList.contains('minimized')) {
-           const taskbarItem = document.querySelector(`.taskbar-item[data-id="${id}"]`);
-           if (taskbarItem) taskbarItem.remove();
+        if (windowEl) {
+            windowEl.classList.remove('active');
+        }
+        const taskbarItem = document.querySelector(`.taskbar-item[data-id="${id}"]`);
+        if (taskbarItem) {
+            taskbarItem.remove();
         }
     }
 
