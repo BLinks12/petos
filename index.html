@@ -637,6 +637,16 @@
       <div class="icon-label">My Pets</div>
     </div>
 
+    <div class="desktop-icon" style="top: 470px; left: 20px;" ondblclick="openRoadmapWindow()">
+        <div class="icon-image">
+            <svg width="48" height="48" viewBox="0 0 48 48">
+                <path d="M40 8H8c-2.2 0-4 1.8-4 4v24c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V12c0-2.2-1.8-4-4-4zm0 28H8V12h32v24z" fill="#FFC107"/>
+                <path d="M12 18h12v4H12zM12 26h24v4H12zM28 18h8v4h-8z" fill="#006400"/>
+            </svg>
+        </div>
+        <div class="icon-label">$PET Roadmap</div>
+    </div>
+
     <!-- Main Window -->
     <div class="window" id="mainWindow">
       <div class="window-header" onmousedown="startDrag(event, 'mainWindow')">
@@ -787,6 +797,42 @@
     </div>
   </div>
 
+  <!-- $PET Roadmap Window -->
+    <div class="window" id="roadmapWindow" style="width: 400px; top: 180px; left: 250px;">
+        <div class="window-header" onmousedown="startDrag(event, 'roadmapWindow')">
+            <div class="window-title">
+                <img src="data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 2H2v12h12V2zM3 13V3h10v10H3z' fill='%23FFC107'/%3E%3Cpath d='M4 4h8v2H4zm0 3h8v2H4zm0 3h5v2H4z' fill='%23006400'/%3E%3C/svg%3E" class="title-icon">
+                $PET Token Roadmap
+            </div>
+            <div class="window-controls">
+                <button class="window-button" onclick="minimizeWindow('roadmapWindow')">_</button>
+                <button class="window-button" onclick="closeWindow('roadmapWindow')">✕</button>
+            </div>
+        </div>
+        <div class="window-content" style="padding: 12px; font-size: 11px;">
+            <h3 style="text-align: center; margin-bottom: 8px;">Holder Incentives & Roadmap</h3>
+            <p>Holding the <strong>$PET</strong> token grants you exclusive benefits within the PetOS ecosystem.</p>
+            <br>
+            <h4 style="margin-bottom: 4px;">Phase 1: Foundation</h4>
+            <ul style="margin-left: 18px; padding-left: 0;">
+                <li style="margin-bottom: 4px;"><strong>Creator Fee Distribution:</strong> 50% of creator fees from secondary market sales will be airdropped to $PET holders.</li>
+                <li><strong>Community Access:</strong> Exclusive access to a token-gated community channel.</li>
+            </ul>
+            <h4 style="margin-top: 12px; margin-bottom: 4px;">Phase 2: Evolution</h4>
+            <ul style="margin-left: 18px; padding-left: 0;">
+                <li style="margin-bottom: 4px;"><strong>Mint Your Pet NFT:</strong> $PET holders will be the first to mint their generated Pet as a permanent NFT on Solana.</li>
+                <li><strong>Pet Customization:</strong> Unlock special accessories and traits for your Pet available only to holders.</li>
+            </ul>
+            <h4 style="margin-top: 12px; margin-bottom: 4px;">Phase 3: Expansion</h4>
+            <ul style="margin-left: 18px; padding-left: 0;">
+                <li style="margin-bottom: 4px;"><strong>PetOS V2:</strong> Holders will get early access to the next generation of PetOS features, including pet interactions and mini-games.</li>
+                <li><strong>Governance:</strong> Participate in decisions about the future of PetOS.</li>
+            </ul>
+            <br>
+            <p style="text-align:center; font-style:italic;">More to be announced soon!</p>
+        </div>
+    </div>
+
   <!-- Taskbar -->
   <div class="taskbar">
     <button class="start-button" id="startButton">
@@ -801,6 +847,7 @@
   <div class="start-menu" id="startMenu" style="display:none; position:fixed; left:2px; bottom:32px; min-width:160px; background:#ece9d8; border:2px solid #fff; box-shadow:2px 2px 8px rgba(0,0,0,0.2); z-index:10001;">
     <div class="start-menu-item" onclick="openMainWindow(); hideStartMenu();">🐾 PetOS.SYS</div>
     <div class="start-menu-item" onclick="openGalleryWindow(); hideStartMenu();">🖼️ My Pets</div>
+    <div class="start-menu-item" onclick="openRoadmapWindow(); hideStartMenu();">🗺️ $PET Roadmap</div>
     <div class="start-menu-item" onclick="openHelpWindow(); hideStartMenu();">❓ Help</div>
     <div class="start-menu-item" onclick="openAboutWindow(); hideStartMenu();">ℹ️ About</div>
     <div class="start-menu-item" style="color:#aaa; cursor:default;">⚙️ Settings (soon)</div>
@@ -842,6 +889,7 @@
         mainWindow: document.getElementById('mainWindow'),
         helpWindow: document.getElementById('helpWindow'),
         aboutWindow: document.getElementById('aboutWindow'),
+        roadmapWindow: document.getElementById('roadmapWindow'),
         connectWalletWindow: document.getElementById('connectWalletWindow'),
         walletAddressDisplay: document.getElementById('walletAddressDisplay'),
         generateBtn: document.getElementById('generateBtn'),
@@ -1501,6 +1549,14 @@
         bringToFront(win);
         restoreWindow(win.id);
         sounds.play('click'); 
+    }
+    function openRoadmapWindow() {
+        const win = ui.roadmapWindow;
+        win.classList.add('active');
+        win.classList.remove('minimized');
+        bringToFront(win);
+        restoreWindow(win.id);
+        sounds.play('click');
     }
     function openGalleryWindow() {
         const win = ui.galleryWindow;
