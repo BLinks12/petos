@@ -578,6 +578,7 @@
         font-size: 10px;
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="desktop">
@@ -921,6 +922,20 @@
     <div id="notificationText">Ready</div>
   </div>
 
+  <!-- Share Card Modal -->
+  <div id="shareModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10002; justify-content: center; align-items: center; padding: 20px;">
+      <div style="background: #ece9d8; padding: 12px; border: 3px solid; border-color: #fff #87875d #87875d #fff; animation: windowOpen 0.2s ease-out;">
+        <div class="window-header" style="justify-content: space-between; cursor: default;">
+          <span class="window-title">Share Your Pet Card</span>
+          <button class="window-button" onclick="closeShareModal()">✕</button>
+        </div>
+        <img id="shareModalImage" style="max-width: 90vw; max-height: 60vh; margin-top: 8px; border: 2px solid; border-color: #87875d #fff #fff #87875d;" />
+        <div id="shareModalButtons" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+          <!-- Buttons are populated by JS -->
+        </div>
+      </div>
+    </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.iife.min.js"></script>
   <script>
@@ -984,6 +999,7 @@
             "AAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
             "ACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
             "ACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
+            "AAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
 
             "AAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
             "ACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAgACAAEAAg" +
@@ -1809,8 +1825,124 @@
         link.click();
     }
 
-    function sharePetCard() {
+    function closeShareModal() {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+
+    function downloadCardFromModal() {
+        const dataURL = document.getElementById('shareModalImage').src;
+        const link = document.createElement('a');
+        link.download = `${currentPetData.walletAddress.substring(0,10)}_pet_card.png`;
+        link.href = dataURL;
+        link.click();
+        showNotification('Download started!');
+    }
+
+    function dataURLtoBlob(dataurl) {
+        let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {type:mime});
+    }
+
+    async function copyCardToClipboard() {
+        try {
+            const dataURL = document.getElementById('shareModalImage').src;
+            const blob = dataURLtoBlob(dataURL);
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]);
+            showNotification('Card copied to clipboard!');
+        } catch (err) {
+            console.error('Error copying to clipboard:', err);
+            showError('Failed to copy card.');
+        }
+    }
+
+    async function shareCardNatively() {
+        const dataURL = document.getElementById('shareModalImage').src;
+        const blob = dataURLtoBlob(dataURL);
+        const file = new File([blob], `${currentPetData.walletAddress.substring(0,10)}_pet_card.png`, { type: blob.type });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'My PetOS Pet!',
+                    text: `Check out my awesome ${currentPetData.rarity.name} pet from PetOS!`,
+                });
+                showNotification('Shared successfully!');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Share failed:', err);
+                    showError('Could not share card.');
+                }
+            }
+        } else {
+            showError("Sharing not supported on this device.");
+        }
+    }
+    
+    function getRarityHexColor(rarityName) {
+        switch(rarityName) {
+            case 'Common': return '#9E9E9E';
+            case 'Uncommon': return '#4CAF50';
+            case 'Rare': return '#2196F3';
+            case 'Epic': return '#9C27B0';
+            case 'Legendary': return '#FF9800';
+            case 'Mythic': return '#FF4081'; // A representative color for the gradient
+            default: return '#BDBDBD';
+        }
+    }
+    
+    function drawRarityBadge(ctx, rarityName, cardWidth) {
+        const rarityColor = getRarityHexColor(rarityName);
+        ctx.save();
+        
+        const ribbonWidth = 120;
+        const ribbonHeight = 28;
+        ctx.translate(cardWidth - ribbonWidth, 15);
+        
+        ctx.fillStyle = rarityColor;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(ribbonWidth, 0);
+        ctx.lineTo(ribbonWidth - 15, ribbonHeight / 2);
+        ctx.lineTo(ribbonWidth, ribbonHeight);
+        ctx.lineTo(0, ribbonHeight);
+        ctx.lineTo(15, ribbonHeight / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+
+        ctx.font = 'bold 14px VT323';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(rarityName.toUpperCase(), ribbonWidth / 2, ribbonHeight / 2 + 1);
+        
+        ctx.restore();
+    }
+
+    async function sharePetCard() {
         if (!currentPetData || !renderer) return;
+        showNotification('Generating your pet card...');
+
+        // Ensure fonts are loaded before drawing
+        await document.fonts.load('24px "Press Start 2P"');
+        await document.fonts.load('16px VT323');
+
         // Create an off-screen canvas
         const cardWidth = 600, cardHeight = 400;
         const cardCanvas = document.createElement('canvas');
@@ -1819,115 +1951,82 @@
         const ctx = cardCanvas.getContext('2d');
 
         // Background
-        ctx.fillStyle = '#e3f4ff';
+        const rarityColor = getRarityHexColor(currentPetData.rarity.name);
+        const gradient = ctx.createRadialGradient(cardWidth / 2, cardHeight / 2, 5, cardWidth / 2, cardHeight / 2, cardWidth);
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(1, rarityColor || '#e3f4ff');
+        ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, cardWidth, cardHeight);
+        
         // Card border
         ctx.strokeStyle = '#245ddb';
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 8;
         ctx.strokeRect(0, 0, cardWidth, cardHeight);
 
         // Draw pet image from renderer
         const petImg = new Image();
         petImg.src = renderer.domElement.toDataURL('image/png');
-        petImg.onload = function() {
-            // Pet image area
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(160, 180, 120, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(petImg, 40, 60, 240, 240);
-            ctx.restore();
-
-            // Pet name
-            ctx.font = 'bold 24px Tahoma, Arial, sans-serif';
-            ctx.fillStyle = '#245ddb';
-            ctx.textAlign = 'left';
-            ctx.fillText(currentPetData.name, 300, 100);
-
-            // Stats
-            ctx.font = '16px Tahoma, Arial, sans-serif';
-            ctx.fillStyle = '#222';
-            let y = 140;
-            const statPad = 34;
-            function stat(label, value, color) {
-                ctx.font = 'bold 15px Tahoma, Arial, sans-serif';
-                ctx.fillStyle = '#87875d';
-                ctx.fillText(label + ':', 300, y);
-                ctx.font = '16px Tahoma, Arial, sans-serif';
-                ctx.fillStyle = color || '#222';
-                ctx.fillText(value, 420, y);
-                y += statPad;
-            }
-            // Rarity color
-            let rarityColor = '#808080';
-            switch(currentPetData.rarity.name) {
-                case 'Uncommon': rarityColor = '#1eff00'; break;
-                case 'Rare': rarityColor = '#0080ff'; break;
-                case 'Epic': rarityColor = '#a335ee'; break;
-                case 'Legendary': rarityColor = '#ff8000'; break;
-                case 'Mythic': rarityColor = '#ff0080'; break;
-            }
-            stat('Rarity', currentPetData.rarity.name, rarityColor);
-            stat('Body Shape', currentPetData.bodyShape);
-            stat('Accessory', currentPetData.accessory);
-            stat('Personality', currentPetData.personality);
-            stat('Special Trait', currentPetData.specialTrait);
-            stat('Owner', currentPetData.walletAddress.substring(0, 10) + '...');
-
-            // Footer
-            ctx.font = 'italic 13px Tahoma, Arial, sans-serif';
-            ctx.fillStyle = '#245ddb';
-            ctx.textAlign = 'center';
-            ctx.fillText('PetOS  |  pet-os.app', cardWidth/2, cardHeight - 24);
-            ctx.font = '32px serif';
-            ctx.fillText('🐾', 60, cardHeight - 30);
-
-            // Download
-            const link = document.createElement('a');
-            link.download = `${currentPetData.walletAddress.substring(0,10)}_pet_card.png`;
-            link.href = cardCanvas.toDataURL('image/png');
-            link.click();
-        };
-    }
-
-    function populateGallery() {
-        ui.galleryContent.innerHTML = ''; // Clear previous content
-        const pets = Object.values(petRegistry);
-
-        if (pets.length === 0) {
-            ui.galleryContent.innerHTML = '<p style="padding: 12px; text-align: center; font-size: 11px;">No pets generated yet. Go make one!</p>';
-            return;
-        }
-
-        const grid = document.createElement('div');
-        grid.className = 'gallery-grid';
-
-        pets.sort((a, b) => a.walletAddress.localeCompare(b.walletAddress)).forEach(petData => {
-            const item = document.createElement('div');
-            item.className = 'gallery-item';
-            item.onclick = () => {
-                openMainWindow();
-                displayPet(petData);
-                closeWindow('galleryWindow');
-                sounds.play('click');
+        
+        // Using a promise to ensure the image is drawn before we continue
+        await new Promise(resolve => {
+            petImg.onload = function() {
+                ctx.drawImage(petImg, 40, 60, 240, 240);
+                resolve();
             };
-
-            const name = document.createElement('div');
-            name.className = 'gallery-item-name';
-            name.textContent = `${petData.walletAddress.substring(0,8)}...`;
-            name.title = petData.name;
-
-            const rarity = document.createElement('div');
-            rarity.className = `gallery-item-rarity rarity-${petData.rarity.name.toLowerCase()}`;
-            rarity.textContent = petData.rarity.name;
-
-            item.appendChild(name);
-            item.appendChild(rarity);
-            grid.appendChild(item);
         });
 
-        ui.galleryContent.appendChild(grid);
+        // Pet name
+        ctx.font = '24px "Press Start 2P"';
+        ctx.fillStyle = '#245ddb';
+        ctx.textAlign = 'left';
+        ctx.fillText(currentPetData.name, 300, 80);
+
+        // Stats
+        ctx.font = '16px VT323';
+        let y = 140;
+        const statPad = 34;
+        const drawStat = (label, value) => {
+            ctx.fillStyle = '#333';
+            ctx.fillText(label + ':', 300, y);
+            ctx.fillStyle = '#000';
+            ctx.fillText(value, 420, y);
+            y += statPad;
+        };
+        drawStat('Body Shape', currentPetData.bodyShape);
+        drawStat('Accessory', currentPetData.accessory);
+        drawStat('Personality', currentPetData.personality);
+        drawStat('Special Trait', currentPetData.specialTrait);
+        drawStat('Owner', currentPetData.walletAddress.substring(0, 10) + '...');
+
+        // Rarity Badge
+        drawRarityBadge(ctx, currentPetData.rarity.name, cardWidth);
+        
+        // Footer
+        ctx.font = '16px VT323';
+        ctx.fillStyle = '#245ddb';
+        ctx.textAlign = 'center';
+        ctx.fillText('Generated by PetOS', cardWidth/2, cardHeight - 24);
+
+        // --- MODAL LOGIC ---
+        const dataURL = cardCanvas.toDataURL('image/png');
+        const modalImg = document.getElementById('shareModalImage');
+        modalImg.src = dataURL;
+        
+        const modalButtons = document.getElementById('shareModalButtons');
+        modalButtons.innerHTML = `<button class="button" onclick="downloadCardFromModal()">Download</button>`;
+
+        // Copy to clipboard is supported by most modern browsers
+        if (navigator.clipboard && navigator.clipboard.write) {
+             modalButtons.innerHTML += `<button class="button" onclick="copyCardToClipboard()">Copy</button>`;
+        }
+        
+        // Web Share API is mostly for mobile
+        if (navigator.share) {
+            modalButtons.innerHTML += `<button class="button" onclick="shareCardNatively()">Share</button>`;
+        }
+        
+        document.getElementById('shareModal').style.display = 'flex';
+        sounds.play('success');
     }
 
     function triggerInteraction() {
@@ -1993,6 +2092,45 @@
         } else {
             showError("Pet name cannot be empty.");
         }
+    }
+
+    function populateGallery() {
+        ui.galleryContent.innerHTML = ''; // Clear previous content
+        const pets = Object.values(petRegistry);
+
+        if (pets.length === 0) {
+            ui.galleryContent.innerHTML = '<p style="padding: 12px; text-align: center; font-size: 11px;">No pets generated yet. Go make one!</p>';
+            return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'gallery-grid';
+
+        pets.sort((a, b) => a.walletAddress.localeCompare(b.walletAddress)).forEach(petData => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.onclick = () => {
+                openMainWindow();
+                displayPet(petData);
+                closeWindow('galleryWindow');
+                sounds.play('click');
+            };
+
+            const name = document.createElement('div');
+            name.className = 'gallery-item-name';
+            name.textContent = `${petData.walletAddress.substring(0,8)}...`;
+            name.title = petData.name;
+
+            const rarity = document.createElement('div');
+            rarity.className = `gallery-item-rarity rarity-${petData.rarity.name.toLowerCase()}`;
+            rarity.textContent = petData.rarity.name;
+
+            item.appendChild(name);
+            item.appendChild(rarity);
+            grid.appendChild(item);
+        });
+
+        ui.galleryContent.appendChild(grid);
     }
 
   </script>
