@@ -739,11 +739,14 @@
         <p><strong>How to Use:</strong><br>
         1. Open PetOS.SYS from the desktop.<br>
         2. Connect your Solana wallet.<br>
-        3. You must be holding the $PET token to generate a pet.<br>
-        4. Click "Initialize PetOS"<br>
-        5. Your unique pet will be generated based on your wallet address.<br>
-        6. <span style="color: red;">WARNING: One pet per wallet FOREVER!</span></p>
+        3. Click "Initialize PetOS"<br>
+        4. Your unique pet will be generated based on your wallet address.<br>
+        5. <span style="color: red;">WARNING: One pet per wallet FOREVER!</span></p>
         
+        <p><strong>New Features!</strong><br>
+        • New Body Shapes: Critter, Blob, Wyrm, Golem, Floater!<br>
+        • Discover accessories and special traits!</p>
+
         <p><strong>Pet Rarity Tiers:</strong><br>
         • Common (Gray) - 40%<br>
         • Uncommon (Green) - 30%<br>
@@ -973,7 +976,7 @@
             { name: 'Legendary', chance: 0.045, color: 0xFF9800 },
             { name: 'Mythic', chance: 0.005, color: 'rainbow' }
         ],
-        bodyShapes: ["Blob", "Critter", "Wyrm"],
+        bodyShapes: ["Blob", "Critter", "Wyrm", "Golem", "Floater"],
         accessories: ["None", "Top Hat", "Wizard Hat", "Crown", "Headphones", "Sunglasses", "Bowtie", "Monocle", "Halo", "Devil Horns", "Jetpack"],
         personalities: ["Debugger", "Helper", "Listener", "Advisor", "Companion", "Guardian", "Scholar", "Sage", "Oracle", "Mentor"],
         specialTraits: ["None", "Glowing Eyes", "Sparkles", "Floating", "Code Aura", "Glitching", "Stealth"]
@@ -1254,7 +1257,49 @@
                 body_c.position.y = 0;
                 const head_c = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 16), petMaterial);
                 head_c.position.y = 1.6;
-                petGroup.add(body_c, head_c);
+                const ear_geo = new THREE.SphereGeometry(0.3, 16, 16);
+                const left_ear = new THREE.Mesh(ear_geo, petMaterial);
+                left_ear.position.set(-0.7, 2.2, 0);
+                const right_ear = new THREE.Mesh(ear_geo, petMaterial);
+                right_ear.position.set(0.7, 2.2, 0);
+                const foot_geo = new THREE.SphereGeometry(0.4, 16, 8);
+                const left_foot = new THREE.Mesh(foot_geo, petMaterial);
+                left_foot.position.set(-0.6, -0.9, 0);
+                left_foot.scale.y = 0.5;
+                const right_foot = new THREE.Mesh(foot_geo, petMaterial);
+                right_foot.position.set(0.6, -0.9, 0);
+                right_foot.scale.y = 0.5;
+                petGroup.add(body_c, head_c, left_ear, right_ear, left_foot, right_foot);
+                break;
+
+            case "Golem":
+                const golem_body = new THREE.Mesh(new THREE.BoxGeometry(2, 2.5, 1.5), petMaterial);
+                golem_body.position.y = 0;
+                const golem_arm_geo = new THREE.BoxGeometry(0.6, 2, 0.6);
+                const golem_left_arm = new THREE.Mesh(golem_arm_geo, petMaterial);
+                golem_left_arm.position.set(-1.3, 0, 0);
+                const golem_right_arm = new THREE.Mesh(golem_arm_geo, petMaterial);
+                golem_right_arm.position.set(1.3, 0, 0);
+                petGroup.add(golem_body, golem_left_arm, golem_right_arm);
+                petGroup.position.y = 0.5;
+                break;
+
+            case "Floater":
+                const floater_body = new THREE.Mesh(new THREE.SphereGeometry(1.3, 32, 16), petMaterial);
+                floater_body.position.y = 1;
+                const tentacle_geo = new THREE.CylinderGeometry(0.1, 0.05, 1.5, 8);
+                const tentacle1 = new THREE.Mesh(tentacle_geo, petMaterial);
+                tentacle1.name = "tentacle1";
+                tentacle1.position.set(0, 0.2, 0.8);
+                const tentacle2 = new THREE.Mesh(tentacle_geo, petMaterial);
+                tentacle2.name = "tentacle2";
+                tentacle2.position.set(0.7, 0.2, -0.4);
+                const tentacle3 = new THREE.Mesh(tentacle_geo, petMaterial);
+                tentacle3.name = "tentacle3";
+                tentacle3.position.set(-0.7, 0.2, -0.4);
+                petGroup.add(floater_body, tentacle1, tentacle2, tentacle3);
+                // This shape should always float
+                if (data.specialTrait === 'None') data.specialTrait = 'Floating'; 
                 break;
 
             case "Blob":
@@ -1291,6 +1336,14 @@
             case "Critter":
                 leftEye.position.set(-0.35, 1.8, 0.7);
                 rightEye.position.set(0.35, 1.8, 0.7);
+                break;
+            case "Golem":
+                leftEye.position.set(-0.5, 0.8, 0.8);
+                rightEye.position.set(0.5, 0.8, 0.8);
+                break;
+            case "Floater":
+                leftEye.position.set(-0.4, 1.2, 1.1);
+                rightEye.position.set(0.4, 1.2, 1.1);
                 break;
             case "Blob":
             default:
@@ -1344,6 +1397,8 @@
             case "Critter": headYOffset = 2.4; break;
             case "Blob": headYOffset = 1.8; break;
             case "Wyrm": headYOffset = 0.5; break; // Relative to front segment
+            case "Golem": headYOffset = 1.2; break;
+            case "Floater": headYOffset = 2.3; break;
         }
 
         switch(accessory) {
@@ -1356,6 +1411,8 @@
                 accessoryMesh = hatGroup;
                 accessoryMesh.position.y = headYOffset;
                 if(bodyShape === 'Wyrm') accessoryMesh.position.x = 2.0;
+                else if (bodyShape === 'Golem') accessoryMesh.position.x = 0.85;
+                else if (bodyShape === 'Floater') accessoryMesh.position.x = 1.15;
                 break;
             case "Crown":
                 accessoryMesh = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.1, 8, 20), new THREE.MeshStandardMaterial({color: 0xFFD700, metalness: 0.8, roughness: 0.3}));
@@ -1381,6 +1438,8 @@
                 if (bodyShape === 'Critter') accessoryMesh.position.set(0, 1.8, 0.8);
                 else if (bodyShape === 'Blob') accessoryMesh.position.set(0, 0.8, 1.3);
                 else if (bodyShape === 'Wyrm') accessoryMesh.position.set(2.0, 0.3, 0);
+                else if (bodyShape === 'Golem') accessoryMesh.position.set(0, 0.8, 0.85);
+                else if (bodyShape === 'Floater') accessoryMesh.position.set(0, 1.2, 1.15);
                 break;
             case "Jetpack":
                  const packGroup = new THREE.Group();
@@ -1436,6 +1495,20 @@
              petGroup.children.forEach((child, index) => {
                 if(child.isMesh) child.position.y = Math.sin(Date.now() * 0.002 + index * 0.9) * 0.3;
              });
+        } else if (currentPetData && currentPetData.bodyShape === 'Golem') {
+            petGroup.children.forEach((child, index) => {
+                if (child.name.includes('arm')) {
+                    child.rotation.x = Math.sin(Date.now() * 0.001 + index) * 0.2;
+                    child.rotation.z = Math.cos(Date.now() * 0.001 + index) * 0.2;
+                }
+            });
+        } else if (currentPetData && currentPetData.bodyShape === 'Floater') {
+            petGroup.children.forEach((child, index) => {
+                if (child.name.includes('tentacle')) {
+                    child.rotation.x = Math.sin(Date.now() * 0.001 + index) * 0.2;
+                    child.rotation.z = Math.cos(Date.now() * 0.001 + index) * 0.2;
+                }
+            });
         } else {
             if(petGroup) petGroup.scale.set(1, 1, 1);
         }
